@@ -392,6 +392,7 @@ curl -X DELETE http://localhost:8082/api/products/1
 ### Obtener Producto por ID de usuario
 ```bash
 curl http://localhost:8082/api/products/users/1
+
 ```
 
 
