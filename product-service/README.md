@@ -98,29 +98,88 @@ src/main/java/com/tecsup/app/micro/product/
 
 ### Requisitos
 - Java 21+
-- PostgreSQL (Docker recomendado)
+- PostgreSQL
 - Maven 3.8+
 
 ### Base de Datos (Docker)
 
-```bash
-# Crear red de microservicios (si no existe)
-docker network create microservices-network
+- Usar el siguiente `docker-compose.yml` para iniciar PostgreSQL:
 
-# Iniciar PostgreSQL
-docker-compose up -d
+localización: ../docker-compose.yml
+
+```yaml
+
+services:
+  # PostgreSQL para User Service
+  postgres-user:
+    image: postgres:15-alpine
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d userdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # PostgreSQL para Product Service
+  postgres-product:
+    image: postgres:15-alpine
+    container_name: postgres-product
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5433:5432"  # Puerto externo 5433, interno 5432
+    volumes:
+      - postgres-product-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d productdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # pgAdmin (Opcional - para visualizar DBs)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - postgres-user
+      - postgres-product
+    restart: unless-stopped
+
+volumes:
+  postgres-user-data:
+    driver: local
+  postgres-product-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+
 ```
 
-O manualmente:
-
 ```bash
-docker run -d \
-  --name postgres-product \
-  -e POSTGRES_DB=productdb \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5433:5432 \
-  postgres:15
+# Iniciar PostgreSQL
+docker-compose up -d
 ```
 
 ### Ejecutar la Aplicación
@@ -185,27 +244,3 @@ curl -X PUT http://localhost:8082/api/products/1 \
 ```bash
 curl -X DELETE http://localhost:8082/api/products/1
 ```
-
-## 🧪 Testing
-
-```bash
-./mvnw test
-```
-
-## 📦 Tecnologías
-
-- Spring Boot 3.5.6
-- Spring Data JPA
-- PostgreSQL
-- MapStruct 1.5.5 (para mapeo de objetos)
-- Lombok
-- Jakarta Validation
-- Java 21
-
-## 🔑 Principios de Clean Architecture
-
-1. **Independencia de Frameworks**: El dominio no depende de Spring
-2. **Testeabilidad**: Cada capa puede probarse de forma aislada
-3. **Independencia de UI**: El controlador puede cambiarse sin afectar la lógica
-4. **Independencia de BD**: JPA puede cambiarse por otra tecnología
-5. **Independencia de agentes externos**: Los servicios externos están detrás de interfaces
