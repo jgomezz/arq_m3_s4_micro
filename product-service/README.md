@@ -182,7 +182,7 @@ volumes:
 docker-compose up -d
 ```
 
-### Configuración de invocación a microservicio user-service
+### Configuración de invocación al microservicio **user-service**
 
 <img src="images/restTemplate_implementation.png" alt="RestTemplate" />
 
@@ -195,7 +195,7 @@ docker-compose up -d
 user.service.url=http://localhost:8081
 ```
 
-- Crear una instancia de restTemplate en BeanConfig.java 
+- Definir restTemplate en BeanConfig.java 
 
 ```java
 package com.tecsup.app.micro.product.infrastructure.config;
@@ -225,9 +225,106 @@ public class BeanConfig {
 
 ```java
 
+package com.tecsup.app.micro.product.infrastructure.client.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserDTO {
+    private Long id;
+    private String name;
+    private String email;
+    private String phone;
+    private String address;
+}
+
 ```
+- Crear UserClient.java
 
+```java 
+package com.tecsup.app.micro.product.infrastructure.client;
 
+import com.tecsup.app.micro.product.infrastructure.client.dto.UserDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class UserClient {
+
+    private final RestTemplate restTemplate;
+
+    @Value("${user.service.url}")
+    private String userServiceUrl;
+
+    public UserDTO getUserById(Long userId) {
+        log.info("Calling User Service (PostgreSQL userdb) to get user with id: {}", userId);
+
+        String url = this.userServiceUrl + "/api/users/" + userId;
+
+        try {
+            UserDTO user = restTemplate.getForObject(url, UserDTO.class);
+            log.info("User retrieved successfully from userdb: {}", user);
+            return user;
+        } catch (Exception e) {
+            log.error("Error calling User Service: {}", e.getMessage());
+            throw new RuntimeException("Error calling User Service: " + e.getMessage());
+        }
+    }
+}
+```
+- Adaptar el uso de UserClient en GetProductsByUserUseCase.java
+
+```java
+
+package com.tecsup.app.micro.product.application.usecase;
+
+import com.tecsup.app.micro.product.domain.model.Product;
+import com.tecsup.app.micro.product.domain.repository.ProductRepository;
+import com.tecsup.app.micro.product.infrastructure.client.UserClient;
+import com.tecsup.app.micro.product.infrastructure.client.dto.UserDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+/**
+ * Caso de uso: Obtener productos por usuario creador
+ */
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class GetProductsByUserUseCase {
+
+    private final ProductRepository productRepository;
+    private final UserClient userClient;
+
+    public List<Product> execute(Long userId) {
+
+        // --------------------------------------------------------
+        // Llama al microservicio user-service
+        // --------------------------------------------------------
+        // Validar que el usuario existe en userdb
+        UserDTO user = userClient.getUserById(userId);
+        log.info("Fetching products for user from userdb: {}", user.getName());
+
+        // TODO : Validar existencia de usuario o lanzar excepcion
+
+        log.debug("Executing GetProductsByUserUseCase for userId: {}", userId);
+        return productRepository.findByCreatedBy(userId);
+    }
+}
+
+```
 
 ### Ejecutar la Aplicación
 
