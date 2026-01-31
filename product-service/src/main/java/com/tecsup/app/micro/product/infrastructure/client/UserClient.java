@@ -21,7 +21,7 @@ public class UserClient {
     public UserDTO getUserById(Long userId) {
         log.info("Calling User Service (PostgreSQL userdb) to get user with id: {}", userId);
 
-        String url = userServiceUrl + "/api/users/" + userId;
+        String url = this.userServiceUrl + "/api/users/" + userId;
 
         try {
             UserDTO user = restTemplate.getForObject(url, UserDTO.class);

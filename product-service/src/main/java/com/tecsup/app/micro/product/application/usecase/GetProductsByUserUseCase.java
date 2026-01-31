@@ -23,9 +23,14 @@ public class GetProductsByUserUseCase {
 
     public List<Product> execute(Long userId) {
 
+        // --------------------------------------------------------
+        // Llama al microservicio user-service
+        // --------------------------------------------------------
         // Validar que el usuario existe en userdb
         UserDTO user = userClient.getUserById(userId);
         log.info("Fetching products for user from userdb: {}", user.getName());
+
+        // TODO : Validar existencia de usuario o lanzar excepcion
 
         log.debug("Executing GetProductsByUserUseCase for userId: {}", userId);
         return productRepository.findByCreatedBy(userId);

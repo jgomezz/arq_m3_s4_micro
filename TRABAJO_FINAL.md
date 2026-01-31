@@ -15,7 +15,7 @@ Con el objetivo de mejorar la escalabilidad, mantenibilidad y despliegue indepen
 
 - Spring Boot  
 - RestTemplate para invocaciones síncronas entre microservicios  
-- Kafka para comunicación asíncrona basada en eventos (sin saga)
+- Kafka para comunicación asíncrona basada en eventos
 
 ---
 
@@ -76,11 +76,6 @@ Incluye:
   - Registro de pago  
   - Envío de notificación  
 
-No incluye:
-
-- Saga  
-- Orquestación distribuida  
-- Event sourcing completo  
 
 ---
 
@@ -90,11 +85,11 @@ No incluye:
 
 | Microservicio | Responsabilidad | Persistencia sugerida |
 |---|---|---|
-| course-service | Gestión de cursos | course_db |
-| enrollment-service | Gestión de matrículas | enrollment_db |
-| payment-service | Gestión de pagos | payment_db |
-| notification-service | Notificaciones por eventos | notification_db |
-| user-service | Gestión de usuarios | user_db |
+| course-service | Gestión de cursos | coursedb |
+| enrollment-service | Gestión de matrículas | enrollmentdb |
+| payment-service | Gestión de pagos | paymentdb |
+| notification-service | Notificaciones por eventos | notificationdb |
+| user-service | Gestión de usuarios | userdb |
 
 ---
 
