@@ -105,7 +105,7 @@ Incluye:
 
 ---
 
-# CASOS DE USO (SIN SAGA)
+# CASOS DE USO
 
 ## Caso 1: Publicar curso
 
